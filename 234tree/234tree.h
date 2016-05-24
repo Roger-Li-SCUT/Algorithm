@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>//malloc和free提供函数原型
 #include <string.h>
-#include <limits.h>//定义了一些常量比如INTN_MAX(参考书:<C Primer Plus>P597)
+#include <limits.h>//定义了一些常量比如INT_MAX
 
 typedef struct treenode
 {
@@ -19,6 +19,7 @@ typedef struct treenode
  	treenode* left_mid_child;
  	treenode* right_mid_child;
  	treenode* right_child;
+ 	treenode* parent;
 	//int flag=0;//标记根节点
 }TreeNode,*Tree;
 
@@ -33,10 +34,6 @@ int compare(Tree treenode , int key);
 
 //判断节点类型
 int node_type(Tree treenode);
-
-//判断是否是4-节点
-bool four_node(Tree treenode);//接受的是指向结点的指针
-
 
 void split_root(Tree &treenode);
 

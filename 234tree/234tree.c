@@ -7,7 +7,7 @@
 
 #include "234tree.h"
 
-//初始化节点
+//创建节点
 void node_create(Tree &treenode,int key)
 {
 	TreeNode *p;
@@ -20,7 +20,9 @@ void node_create(Tree &treenode,int key)
 	treenode->left_child = NULL;
 	treenode->left_mid_child = NULL;
 	treenode->right_mid_child = NULL;
-	treenode->right_child = NULL;	
+	treenode->right_child = NULL;
+	treenode->
+	return;
 }
 
 //判断节点是否为叶节点
@@ -51,18 +53,12 @@ int compare(Tree treenode , int key)
 //判断节点类型
 int node_type(Tree treenode)
 {
-	if(treenode->data_m == INT_MAX)//由于插入结点前的对4结点的拆分操作，因此
-  		return 2;//子节点的父结点一定不是4结点，只能为2或3结点
- 	else
+	if(treenode->data_l != INT_MAX && treenode->data_m == INT_MAX && treenode->data_r == INT_MAX)
+  		return 2;
+ 	if(treenode->data_l != INT_MAX && treenode->data_m != INT_MAX && treenode->data_r == INT_MAX)
   		return 3;
-}
-
-bool four_node(Tree treenode)//接受的是指向结点的指针
-{
-	if((treenode->data_m == INT_MAX) || (treenode->data_r == INT_MAX))
-  		return false;
- 	else
-  		return true;
+  	if(treenode->data_l != INT_MAX && treenode->data_m != INT_MAX && treenode->data_r != INT_MAX)
+		return 4;
 }
 
 void split_root(Tree &treenode)
@@ -251,16 +247,16 @@ void Node_Insert(Tree &treenode , int key)//将元素插入叶结点
  	}
 }
 
-void Tree_Insert(Tree &treenode , int key)
+void Tree_Insert(Tree &tree , int key)
 {
 	TreeNode *parent,*child;//定义两个节点，分别指向父节点与孩子节点
 	parent=(TreeNode*)malloc(sizeof(TreeNode));
 	child=(TreeNode*)malloc(sizeof(TreeNode));
 	
-	//创建根节点
-	if(treenode==NULL)
+	//234树为空，创建根节点
+	if(tree=NULL)
 	{
-		Node_Insert(treenode,key);
+		Node_Insert(tree,key);
 		//treenode->flag=1;
 	}
 	else
