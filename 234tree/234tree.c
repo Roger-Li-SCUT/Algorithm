@@ -8,11 +8,10 @@
 #include "234tree.h"
 
 //创建节点
-void node_create(Tree &treenode,int key)
+TreeNode* node_create(int key,TreeNode *parent)
 {
-	TreeNode *p;
-	p=(TreeNode*)malloc(sizeof(TreeNode));
-	treenode=p;
+	TreeNode *treenode;
+	treenode=(TreeNode*)malloc(sizeof(TreeNode));
 	
 	treenode->data_l = key;
 	treenode->data_m = INT_MAX;
@@ -21,8 +20,8 @@ void node_create(Tree &treenode,int key)
 	treenode->left_mid_child = NULL;
 	treenode->right_mid_child = NULL;
 	treenode->right_child = NULL;
-	treenode->
-	return;
+	treenode->parent = parent;
+	return treenode;
 }
 
 //判断节点是否为叶节点
@@ -37,7 +36,6 @@ bool compare_leaf(Tree treenode)
 //返回插入节点应该插入的位置
 int compare(Tree treenode , int key)
 {
-	//printf("compare is done!\n");
   	if(key < treenode->data_l) 
    		return 1;
   	else if((key > treenode->data_l) && (key < treenode->data_m))
@@ -65,24 +63,27 @@ void split_root(Tree &treenode)
 {
 	TreeNode *lnode,*rnode;
 
-	node_create(lnode,treenode->data_l);
-	node_create(rnode,treenode->data_r);
-	lnode->left_child=treenode->left_child;
-	lnode->left_mid_child=treenode->left_mid_child;
+	lnode = node_create(treenode->data_l,treenode);
+	rnode = node_create(treenode->data_r,treenode);
 	
-	rnode->left_child=treenode->right_mid_child;
-	rnode->left_mid_child=treenode->right_child;
+	lnode->left_child = treenode->left_child;
+	lnode->left_mid_child =t reenode->left_mid_child;
 	
-	treenode->data_l=treenode->data_m;
-	treenode->data_m=INT_MAX;
-	treenode->data_r=INT_MAX;
+	rnode->left_child = treenode->right_mid_child;
+	rnode->left_mid_child = treenode->right_child;
+	
+	treenode->data_l = treenode->data_m;
+	treenode->data_m = INT_MAX;
+	treenode->data_r = INT_MAX;
  	treenode->left_child = lnode;
  	treenode->left_mid_child = rnode;
-	treenode->right_mid_child=NULL;
-	treenode->right_child=NULL;
+	treenode->right_mid_child = NULL;
+	treenode->right_child = NULL;
+	treenode->parent = NULL;
+	return;
 }
 
-void node2_split(TreeNode *parent,TreeNode *child)
+void node2_split(TreeNode *treenode,TreeNode *child)
 {
 	if (child == parent->left_child)//4-节点为父结点的左孩子
  	{
@@ -130,7 +131,8 @@ void node2_split(TreeNode *parent,TreeNode *child)
  
   	  	parent->right_mid_child = child;
 		parent->left_mid_child=lnode;
- 	}  
+ 	} 
+ 	return;
 }
 
 //3-节点与4-节点相连
@@ -197,18 +199,14 @@ void node3_split(TreeNode *parent,TreeNode *child)
 		parent->right_mid_child = lnode;
   		parent->right_child = child;
  	}
+ 	return;
 }
 
 
 void Node_Insert(Tree &treenode , int key)//将元素插入叶结点
 {
-	//如果树为空，即进行初始化
-	if(treenode==NULL)
-	{
-		node_create(treenode,key);
-	}
 	
- 	else if (treenode->data_m == INT_MAX)//叶结点是2-节点
+	if(treenode->data_m == INT_MAX)//叶结点是2-节点
  	{
   		if (key < treenode->data_l)
   		{
@@ -245,72 +243,61 @@ void Node_Insert(Tree &treenode , int key)//将元素插入叶结点
    			treenode->right_child = NULL;
   		}   
  	}
+ 	return;
 }
 
 void Tree_Insert(Tree &tree , int key)
 {
-	TreeNode *parent,*child;//定义两个节点，分别指向父节点与孩子节点
-	parent=(TreeNode*)malloc(sizeof(TreeNode));
-	child=(TreeNode*)malloc(sizeof(TreeNode));
 	
 	//234树为空，创建根节点
-	if(tree=NULL)
+	if(tree == NULL)
 	{
-		Node_Insert(tree,key);
-		//treenode->flag=1;
+		tree=node_create(key,NULL);
+		return;
 	}
-	else
+	else//如果234树为非空
 	{
-		//树根一变成4-节点，即将树根分裂为三个2-节点
-		//if(four_node(treenode))	
-		//	split_root(treenode);
-		parent=NULL;
-		child=treenode;
-		while(child!=NULL)
+		TreeNode *x=tree;
+		
+		if(x->parent==NULL && compare_leaf(x))
 		{
-			if(parent==NULL&&four_node(treenode))
+			if(node_type(x)==4)
 			{
-				split_root(treenode);
-				parent=NULL;
-				child=treenode;
+				split_root(x);
+				Tree_Insert(x,key);
 			}
-			else if(!four_node(child))//如果不是4-节点
+			else
 			{
-				if(compare_leaf(child)&&compare(child,key)!=5)
+				Node_Insert(x,key);
+				return;
+			}
+		}
+		else
+		{
+			while(!compare_leaf(x))
+			{
+				if(node_type(x) == 4)
 				{
-					Node_Insert(child,key);
-					return;
+					if(node_type(x->parent) == 2)
+						node2_split(x->parent,x);
+					else if(node_type(x->parent) == 3)
+						node3_split(x->parent,x);
+					Tree_Insert(x->parent,key);
 				}
-   				switch (compare(child,key))
+				switch (compare(x,key))
    				{
-    				case 5:return;
-    				case 1: parent=child;child = child->left_child;
+    				case 5: return;
+    				case 1: x = x->left_child;
 					break;
-        			case 2: parent=child;child = child->left_mid_child;
+        			case 2: x = x->left_mid_child;
          			break;
-    				case 3: parent=child;child = child->right_mid_child;
+    				case 3: x = x->right_mid_child;
            			break;
-    				case 4: parent=child;child = child->right_child;
+    				case 4: x = x->right_child;
 					break;
    				}
 			}
-			else 
-				if(node_type(parent)==2)//如果父节点是2-节点
-				{
-					if(compare(child,key)==5)
-						return;
-					node2_split(parent,child);
-					child=treenode;
-					parent=NULL;
-				}
-				else//如果父节点是3-节点
-				{
-					if(compare(child,key)==5)
-						return;
-					node3_split(parent,child);
-					child=treenode;
-					parent=NULL;
-				}
+			Node_Insert(x,key);
 		}
 	}
 	return;
